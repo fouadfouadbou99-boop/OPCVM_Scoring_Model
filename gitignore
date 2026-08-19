@@ -4,31 +4,32 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtualenv
+# Virtual Env
 venv/
-env/
+.env/
 .venv/
 
 # Streamlit
-.streamlit/secrets.toml
+.streamlit/
+
+# VS Code
+.vscode/
 
 # Jupyter
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
-# IDE
-.vscode/
-.idea/
+# Excel exports
+exports/
+*.xlsx~
 
-# OS
+# Mac
 .DS_Store
-Thumbs.db
 
 # Logs
 *.log
 
-# Excel temporaires
-~$*.xlsx
+# Secrets
+secrets.toml
 
-# Build
-build/
-dist/
+# Cache
+.cache/
