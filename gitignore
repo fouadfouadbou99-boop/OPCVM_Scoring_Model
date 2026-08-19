@@ -1,35 +1,19 @@
-# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Virtual Env
 venv/
-.env/
 .venv/
+.env/
 
-# Streamlit
+.vscode/
+.idea/
+
 .streamlit/
 
-# VS Code
-.vscode/
+.cache/
 
-# Jupyter
-.ipynb_checkpoints/
-
-# Excel exports
-exports/
-*.xlsx~
-
-# Mac
 .DS_Store
 
-# Logs
 *.log
-
-# Secrets
-secrets.toml
-
-# Cache
-.cache/
