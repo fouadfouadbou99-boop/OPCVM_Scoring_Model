@@ -1,45 +1,78 @@
 # OPCVM Scoring Dashboard
 
-Application Streamlit permettant d'analyser et classer les OPCVM selon une approche multicritères.
+Application Streamlit permettant d'analyser et de classer les OPCVM selon une approche multicritères dynamique.
+
+---
 
 ## Fonctionnalités
 
-- Chargement dynamique des données OPCVM
-- Paramétrage des poids des critères
-- Calcul automatique des scores
-- Classement des fonds
-- Dashboard interactif
-- Export Excel du classement
+✅ Chargement Excel
 
-## Critères analysés
+✅ Paramétrage dynamique des poids
 
-- Taille (Actif Net)
+✅ Classement des OPCVM
+
+✅ Radar Chart
+
+✅ Heatmap Interactive
+
+✅ Top 10
+
+✅ Export Excel
+
+✅ Dashboard professionnel
+
+---
+
+## Critères
+
+- Actif Net (AN)
 - Frais de gestion
-- Performance 1 an
-- Performance 3 ans
-- Performance 5 ans
+- Performance YTD
+- Performance 1 semaine
+- Performance 1 mois
+
+---
 
 ## Méthodologie
 
-Chaque critère est normalisé via une méthode percentile.
+Les données sont normalisées entre 0 et 1.
 
-Le score global est calculé :
+### Critères positifs
+
+- AN
+- Perf YTD
+- Perf 1 semaine
+- Perf 1 mois
+
+### Critère négatif
+
+- Frais de gestion
+
+La normalisation est inversée pour les frais :
+
+Score_Frais =
+(Max-Frais)/(Max-Min)
+
+---
+
+## Formule
 
 Score =
 
-(Taille × Poids_Taille)
+(AN_norm × Poids_AN)
 
-+ (Frais × Poids_Frais)
++(Frais_norm × Poids_Frais)
 
-+ (Perf1A × Poids_1A)
++(YTD_norm × Poids_YTD)
 
-+ (Perf3A × Poids_3A)
++(Semaine_norm × Poids_Semaine)
 
-+ (Perf5A × Poids_5A)
++(Mois_norm × Poids_Mois)
 
-Les frais étant un critère à minimiser, leur score est inversé.
+---
 
-## Installation locale
+## Installation
 
 ```bash
 git clone https://github.com/votrecompte/opcvm-scoring.git
@@ -47,26 +80,40 @@ git clone https://github.com/votrecompte/opcvm-scoring.git
 cd opcvm-scoring
 
 pip install -r requirements.txt
+```
 
+## Exécution
+
+```bash
 streamlit run app.py
 ```
 
+---
+
 ## Déploiement Streamlit Cloud
 
-1. Déposer le code sur GitHub
+1. Déposer les fichiers sur GitHub
+
 2. Aller sur :
 
 https://share.streamlit.io
 
-3. Connecter le dépôt GitHub
-4. Choisir :
+3. Choisir :
 
 ```text
-app.py
+Repository : opcvm-scoring
+
+Branch : main
+
+Main file : app.py
 ```
 
-5. Deploy
+4. Deploy
+
+---
 
 ## Auteur
 
-Fouad Boukhnif
+Fouad BOUKHNIF
+
+Chef de Division
