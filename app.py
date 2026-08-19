@@ -1,162 +1,166 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from io import BytesIO
 
 st.set_page_config(
-    page_title="Scoring Dynamique OPCVM",
-    page_icon="📊",
+    page_title="OPCVM Scoring Dashboard",
+    page_icon="📈",
     layout="wide"
 )
 
-st.title("📊 Scoring Dynamique OPCVM")
+st.title("📈 OPCVM Scoring Dashboard")
 
-# --------------------------------------------------
-# Chargement fichier
-# --------------------------------------------------
+st.markdown(
+    "Classement dynamique des OPCVM selon plusieurs critères."
+)
+
 uploaded_file = st.file_uploader(
-    "Charger le fichier Excel OPCVM",
+    "Charger votre fichier Excel",
     type=["xlsx"]
 )
 
-if uploaded_file is not None:
+if uploaded_file:
 
-    # Lecture des feuilles
-    df_base = pd.read_excel(uploaded_file, sheet_name="Base_OPCVM")
-    df_param = pd.read_excel(uploaded_file, sheet_name="Parametres")
+    try:
 
-    st.success("Fichier chargé avec succès")
+        df = pd.read_excel(
+            uploaded_file,
+            sheet_name="Base_OPCVM"
+        )
 
-    st.subheader("Base OPCVM")
-    st.dataframe(df_base)
+        params = pd.read_excel(
+            uploaded_file,
+            sheet_name="Parametres"
+        )
 
-    # --------------------------------------------------
-    # Récupération poids
-    # --------------------------------------------------
-    poids_dict = dict(
-        zip(df_param["Critere"], df_param["Poids"])
-    )
+        st.success("Fichier chargé avec succès")
 
-    st.sidebar.header("Paramètres de scoring")
+    except Exception as e:
+
+        st.error(f"Erreur : {e}")
+        st.stop()
+
+    st.sidebar.header("⚙️ Paramètres")
+
+    poids_reference = {
+
+        row["Critere"]: row["Poids"]
+
+        for _, row in params.iterrows()
+    }
 
     poids_an = st.sidebar.slider(
-        "Poids AN",
+        "AN",
         0.0,
         1.0,
-        float(poids_dict.get("AN", 0.20)),
+        float(poids_reference.get("AN", 0.2)),
         0.05
     )
 
     poids_frais = st.sidebar.slider(
-        "Poids Frais de gestion",
+        "Frais",
         0.0,
         1.0,
-        float(poids_dict.get("Frais de gestion", 0.20)),
+        float(poids_reference.get("Frais de gestion", 0.2)),
         0.05
     )
 
     poids_ytd = st.sidebar.slider(
-        "Poids Perf_YTD",
+        "Performance YTD",
         0.0,
         1.0,
-        float(poids_dict.get("Perf_YTD", 0.35)),
+        float(poids_reference.get("Perf_YTD", 0.35)),
         0.05
     )
 
     poids_sem = st.sidebar.slider(
-        "Poids Perf_1_ semaine",
+        "Performance 1 semaine",
         0.0,
         1.0,
-        float(poids_dict.get("Perf_1_ semaine", 0.25)),
+        float(poids_reference.get("Perf_1_ semaine", 0.25)),
         0.05
     )
 
     poids_mois = st.sidebar.slider(
-        "Poids Perf_1_ mois",
+        "Performance 1 mois",
         0.0,
         1.0,
-        float(poids_dict.get("Perf_1_ mois", 0.00)),
+        float(poids_reference.get("Perf_1_ mois", 0.00)),
         0.05
     )
 
     total = (
-        poids_an +
-        poids_frais +
-        poids_ytd +
-        poids_sem +
-        poids_mois
+        poids_an
+        + poids_frais
+        + poids_ytd
+        + poids_sem
+        + poids_mois
     )
-
-    st.sidebar.metric("Total poids", round(total, 4))
 
     if total == 0:
-        st.error("La somme des poids doit être supérieure à zéro.")
+        st.error("La somme des poids doit être supérieure à 0.")
         st.stop()
 
-    # --------------------------------------------------
-    # Normalisation Min-Max
-    # --------------------------------------------------
+    score_df = df.copy()
 
-    score_df = df_base.copy()
-
-    # Critère bénéfique : AN
     score_df["AN_norm"] = (
-        (score_df["AN"] - score_df["AN"].min())
-        /
-        (score_df["AN"].max() - score_df["AN"].min())
+        score_df["AN"] - score_df["AN"].min()
+    ) / (
+        score_df["AN"].max() - score_df["AN"].min()
     )
 
-    # Critère coût : Frais de gestion (inverse)
     score_df["Frais_norm"] = (
-        (score_df["Frais de gestion"].max() - score_df["Frais de gestion"])
-        /
-        (
-            score_df["Frais de gestion"].max()
-            - score_df["Frais de gestion"].min()
-        )
+        score_df["Frais de gestion"].max()
+        - score_df["Frais de gestion"]
+    ) / (
+        score_df["Frais de gestion"].max()
+        - score_df["Frais de gestion"].min()
     )
 
-    # Critères bénéfices
     score_df["YTD_norm"] = (
-        (score_df["Perf_YTD"] - score_df["Perf_YTD"].min())
-        /
-        (score_df["Perf_YTD"].max() - score_df["Perf_YTD"].min())
+        score_df["Perf_YTD"]
+        - score_df["Perf_YTD"].min()
+    ) / (
+        score_df["Perf_YTD"].max()
+        - score_df["Perf_YTD"].min()
     )
 
     score_df["Semaine_norm"] = (
-        (score_df["Perf_1_ semaine"] - score_df["Perf_1_ semaine"].min())
-        /
-        (
-            score_df["Perf_1_ semaine"].max()
-            - score_df["Perf_1_ semaine"].min()
-        )
+        score_df["Perf_1_ semaine"]
+        - score_df["Perf_1_ semaine"].min()
+    ) / (
+        score_df["Perf_1_ semaine"].max()
+        - score_df["Perf_1_ semaine"].min()
     )
 
     score_df["Mois_norm"] = (
-        (score_df["Perf_1_ mois"] - score_df["Perf_1_ mois"].min())
-        /
-        (
-            score_df["Perf_1_ mois"].max()
-            - score_df["Perf_1_ mois"].min()
-        )
+        score_df["Perf_1_ mois"]
+        - score_df["Perf_1_ mois"].min()
+    ) / (
+        score_df["Perf_1_ mois"].max()
+        - score_df["Perf_1_ mois"].min()
     )
 
-    # --------------------------------------------------
-    # Score pondéré
-    # --------------------------------------------------
-
     score_df["Score"] = (
-        poids_an * score_df["AN_norm"]
-        + poids_frais * score_df["Frais_norm"]
-        + poids_ytd * score_df["YTD_norm"]
-        + poids_sem * score_df["Semaine_norm"]
-        + poids_mois * score_df["Mois_norm"]
+
+        score_df["AN_norm"] * poids_an
+
+        + score_df["Frais_norm"] * poids_frais
+
+        + score_df["YTD_norm"] * poids_ytd
+
+        + score_df["Semaine_norm"] * poids_sem
+
+        + score_df["Mois_norm"] * poids_mois
+
     ) / total
 
-    # Classement
-    score_df["Rang"] = (
-        score_df["Score"]
-        .rank(ascending=False, method="dense")
-        .astype(int)
+    score_df["Rang"] = score_df["Score"].rank(
+        ascending=False,
+        method="dense"
     )
 
     score_df = score_df.sort_values(
@@ -164,70 +168,161 @@ if uploaded_file is not None:
         ascending=False
     )
 
-    st.subheader("Classement OPCVM")
+    score_df["Rang"] = range(
+        1,
+        len(score_df) + 1
+    )
+
+    st.subheader("🏆 Classement")
 
     st.dataframe(
         score_df[
             [
-                "OPCVM",
-                "Score",
                 "Rang",
-                "AN",
-                "Frais de gestion",
-                "Perf_YTD",
-                "Perf_1_ semaine",
-                "Perf_1_ mois"
+                "OPCVM",
+                "Score"
             ]
         ],
         use_container_width=True
     )
 
-    # --------------------------------------------------
-    # TOP 10
-    # --------------------------------------------------
+    st.subheader("📊 Top 10")
 
-    st.subheader("🏆 Top 10 OPCVM")
+    fig_bar = px.bar(
+        score_df.head(10),
+        x="OPCVM",
+        y="Score",
+        color="Score",
+        text="Score"
+    )
 
-    st.dataframe(
-        score_df.head(10)[
-            ["Rang", "OPCVM", "Score"]
-        ],
+    st.plotly_chart(
+        fig_bar,
         use_container_width=True
     )
 
-    # --------------------------------------------------
-    # Graphique
-    # --------------------------------------------------
+    st.subheader("🕸 Radar OPCVM")
 
-    st.subheader("Visualisation des scores")
-
-    st.bar_chart(
-        score_df.set_index("OPCVM")["Score"].head(15)
+    selection = st.multiselect(
+        "Choisir des OPCVM",
+        score_df["OPCVM"].tolist(),
+        default=score_df.head(3)["OPCVM"].tolist()
     )
 
-    # --------------------------------------------------
-    # Export Excel
-    # --------------------------------------------------
+    if selection:
 
-    export_df = score_df.copy()
+        radar_df = score_df[
+            score_df["OPCVM"].isin(selection)
+        ]
 
-    output_file = "Scoring_OPCVM_Resultat.xlsx"
+        fig_radar = go.Figure()
+
+        categories = [
+            "Taille",
+            "Frais",
+            "YTD",
+            "Semaine",
+            "Mois"
+        ]
+
+        for _, row in radar_df.iterrows():
+
+            valeurs = [
+
+                row["AN_norm"],
+                row["Frais_norm"],
+                row["YTD_norm"],
+                row["Semaine_norm"],
+                row["Mois_norm"]
+
+            ]
+
+            valeurs.append(valeurs[0])
+
+            fig_radar.add_trace(
+                go.Scatterpolar(
+                    r=valeurs,
+                    theta=categories + ["Taille"],
+                    fill="toself",
+                    name=row["OPCVM"]
+                )
+            )
+
+        fig_radar.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 1]
+                )
+            ),
+            height=700
+        )
+
+        st.plotly_chart(
+            fig_radar,
+            use_container_width=True
+        )
+
+    st.subheader("🔥 Heatmap Interactive")
+
+    heatmap_df = (
+        score_df
+        .head(20)
+        .set_index("OPCVM")
+        [
+            [
+                "AN_norm",
+                "Frais_norm",
+                "YTD_norm",
+                "Semaine_norm",
+                "Mois_norm",
+                "Score"
+            ]
+        ]
+    )
+
+    fig_heat = px.imshow(
+        heatmap_df,
+        text_auto=".2f",
+        color_continuous_scale="RdYlGn",
+        aspect="auto"
+    )
+
+    fig_heat.update_layout(
+        height=700,
+        xaxis_title="Critères",
+        yaxis_title="OPCVM"
+    )
+
+    st.plotly_chart(
+        fig_heat,
+        use_container_width=True
+    )
+
+    st.subheader("📥 Export")
+
+    output = BytesIO()
 
     with pd.ExcelWriter(
-        output_file,
-        engine="openpyxl"
+        output,
+        engine="xlsxwriter"
     ) as writer:
 
-        export_df.to_excel(
+        score_df.to_excel(
             writer,
-            sheet_name="Scoring",
+            sheet_name="Classement",
             index=False
         )
 
-    with open(output_file, "rb") as f:
-        st.download_button(
-            label="📥 Télécharger le classement",
-            data=f,
-            file_name=output_file,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    st.download_button(
+        label="Télécharger le classement Excel",
+        data=output.getvalue(),
+        file_name="Classement_OPCVM.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+else:
+
+    st.info(
+        "Chargez le fichier Excel OPCVM pour commencer."
+    )
