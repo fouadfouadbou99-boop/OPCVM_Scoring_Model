@@ -3,7 +3,120 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
+# ==========================================================
+# MOTEUR EXPERT DE COMMENTAIRE COMITE
+# ==========================================================
 
+def generate_expert_committee_commentary(score_df):
+
+    commentaires = {
+        "Synthese": [],
+        "Forces": [],
+        "Vigilances": [],
+        "Recommandations": []
+    }
+
+    nb_fonds = len(score_df)
+
+    score_moyen = score_df["Score"].mean()
+    score_max = score_df["Score"].max()
+    score_min = score_df["Score"].min()
+
+    leader = score_df.iloc[0]["OPCVM"]
+    leader_score = score_df.iloc[0]["Score"]
+
+    dispersion = score_max - score_min
+
+    # --------------------------------------------------
+    # SYNTHESE
+    # --------------------------------------------------
+
+    commentaires["Synthese"].append(
+        f"L'univers analysé comprend {nb_fonds} OPCVM présentant un score moyen de {score_moyen:.3f}."
+    )
+
+    commentaires["Synthese"].append(
+        f"Le fonds le mieux classé est {leader} avec un score de {leader_score:.3f}."
+    )
+
+    if score_moyen >= 0.70:
+        commentaires["Synthese"].append(
+            "Le niveau moyen des notations traduit globalement une qualité satisfaisante de l'univers analysé."
+        )
+
+    elif score_moyen >= 0.50:
+        commentaires["Synthese"].append(
+            "Les résultats mettent en évidence une qualité globalement moyenne avec des situations contrastées selon les fonds."
+        )
+
+    else:
+        commentaires["Synthese"].append(
+            "L'univers présente globalement des scores faibles nécessitant une analyse approfondie des déterminants de performance."
+        )
+
+    # --------------------------------------------------
+    # FORCES
+    # --------------------------------------------------
+
+    if dispersion < 0.30:
+        commentaires["Forces"].append(
+            "Le classement présente une bonne homogénéité entre les OPCVM analysés."
+        )
+
+    if score_max >= 0.80:
+        commentaires["Forces"].append(
+            "Les meilleurs fonds affichent un niveau de score élevé traduisant un positionnement particulièrement favorable."
+        )
+
+    top3 = score_df.head(3)
+
+    commentaires["Forces"].append(
+        f"Les fonds les mieux classés sont : {', '.join(top3['OPCVM'].astype(str).tolist())}."
+    )
+
+    if score_moyen > 0.60:
+        commentaires["Forces"].append(
+            "La majorité des fonds affiche un niveau de notation compatible avec les standards attendus par un investisseur institutionnel."
+        )
+
+    # --------------------------------------------------
+    # VIGILANCES
+    # --------------------------------------------------
+
+    if dispersion > 0.50:
+        commentaires["Vigilances"].append(
+            "La forte dispersion des scores traduit une hétérogénéité importante des profils de qualité au sein de l'univers analysé."
+        )
+
+    if score_min < 0.30:
+        commentaires["Vigilances"].append(
+            "Certains fonds affichent des scores sensiblement inférieurs à la moyenne nécessitant une revue détaillée."
+        )
+
+    fonds_faibles = score_df.tail(min(3, len(score_df)))
+
+    commentaires["Vigilances"].append(
+        f"Une attention particulière devrait être portée aux fonds suivants : {', '.join(fonds_faibles['OPCVM'].astype(str).tolist())}."
+    )
+
+    # --------------------------------------------------
+    # RECOMMANDATIONS
+    # --------------------------------------------------
+
+    commentaires["Recommandations"].append(
+        "Privilégier une analyse détaillée des fonds situés dans le premier quartile du classement."
+    )
+
+    commentaires["Recommandations"].append(
+        "Compléter l'analyse quantitative par une revue qualitative du processus de gestion et du dispositif de maîtrise des risques."
+    )
+
+    commentaires["Recommandations"].append(
+        "Mettre en place un suivi régulier des fonds situés en bas du classement afin d'identifier l'évolution de leurs fondamentaux."
+    )
+
+    return commentaires
+``
 # ----------------------------------------------------
 # CONFIGURATION PAGE
 # ----------------------------------------------------
