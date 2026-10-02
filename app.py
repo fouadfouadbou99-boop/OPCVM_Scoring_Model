@@ -340,45 +340,25 @@ st.dataframe(
 
 st.subheader("📝 Analyse et commentaires")
 
-# --------------------------------------------------
-# SYNTHESE
-# --------------------------------------------------
-
 st.markdown("### 📌 Synthèse exécutive")
 
 for item in commentaires["Synthese"\]:
     st.write("•", item)
-
-# --------------------------------------------------
-# FORCES
-# --------------------------------------------------
 
 st.markdown("### ✅ Forces identifiées")
 
 for item in commentaires["Forces"\]:
     st.write("•", item)
 
-# --------------------------------------------------
-# VIGILANCES
-# --------------------------------------------------
-
 st.markdown("### ⚠️ Points de vigilance")
 
 for item in commentaires["Vigilances"\]:
     st.write("•", item)
 
-# --------------------------------------------------
-# RECOMMANDATIONS
-# --------------------------------------------------
-
 st.markdown("### 🎯 Recommandations au Comité")
 
 for item in commentaires["Recommandations"\]:
     st.write("•", item)
-
-# --------------------------------------------------
-# CONCLUSION
-# --------------------------------------------------
 
 st.success(
 f"""
