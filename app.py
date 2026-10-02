@@ -337,7 +337,7 @@ st.dataframe(
 # ==================================================
 # ANALYSE ET COMMENTAIRES
 # ==================================================
-
+st.error("COMMENTAIRES ACTIFS")
 st.subheader("📝 Analyse et commentaires")
 
 st.markdown("### 📌 Synthèse exécutive")
