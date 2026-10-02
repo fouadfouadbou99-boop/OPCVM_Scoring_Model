@@ -298,7 +298,7 @@ score_df["Rang"] = range(
     1,
     len(score_df) + 1
 )
-
+commentaires = generate_expert_committee_commentary(score_df)
 # ----------------------------------------------------
 # KPI
 # ----------------------------------------------------
@@ -334,7 +334,71 @@ st.dataframe(
     ],
     use_container_width=True
 )
+# ==================================================
+# ANALYSE ET COMMENTAIRES
+# ==================================================
 
+st.subheader("📝 Analyse et commentaires")
+
+# --------------------------------------------------
+# SYNTHESE
+# --------------------------------------------------
+
+st.markdown("### 📌 Synthèse exécutive")
+
+for item in commentaires["Synthese"\]:
+    st.write("•", item)
+
+# --------------------------------------------------
+# FORCES
+# --------------------------------------------------
+
+st.markdown("### ✅ Forces identifiées")
+
+for item in commentaires["Forces"\]:
+    st.write("•", item)
+
+# --------------------------------------------------
+# VIGILANCES
+# --------------------------------------------------
+
+st.markdown("### ⚠️ Points de vigilance")
+
+for item in commentaires["Vigilances"\]:
+    st.write("•", item)
+
+# --------------------------------------------------
+# RECOMMANDATIONS
+# --------------------------------------------------
+
+st.markdown("### 🎯 Recommandations au Comité")
+
+for item in commentaires["Recommandations"\]:
+    st.write("•", item)
+
+# --------------------------------------------------
+# CONCLUSION
+# --------------------------------------------------
+
+st.success(
+f"""
+Conclusion
+
+L'analyse réalisée sur {len(score_df)} OPCVM met en évidence un score moyen de
+{score_df['Score'].mean():.3f}.
+
+Le fonds actuellement le mieux classé est
+{score_df.iloc[0]['OPCVM']}
+avec un score de
+{score_df.iloc[0]['Score'\]:.3f}.
+
+Le classement obtenu constitue un outil d'aide à la décision permettant
+d'orienter les travaux du Comité et d'identifier les OPCVM les plus attractifs
+au regard des critères retenus.
+
+Une analyse qualitative complémentaire demeure nécessaire avant toute prise de décision.
+"""
+)
 # ----------------------------------------------------
 # TOP 10 BAR CHART
 # ----------------------------------------------------
